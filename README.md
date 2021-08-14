@@ -9,27 +9,28 @@ The project contains implementations for various activation functions, layers, l
 
 Given below is list of available implementations (which may or may not require any improvements).
 
-|Activation Function| Status|
+
+|Activation Functions| Status|
 |---|---|
-|Sigmoid| <span style="color:green">Available</span>.|
+|Sigmoid| Available|
 
 |Layer| Status|
 |---|---|
-|Dense| <span style="color:green">Available</span>.|
-|Conv2D| <span style="color:green">Available</span>.|
-|MaxPool2D| <span style="color:green">Available</span>.|
-|Flatten| <span style="color:green">Available</span>.|
+|Dense| Available|
+|Conv2D| Available|
+|MaxPool2D| Available|
+|Flatten| Available|
 
 |Loss Function| Status|
 |---|---|
-|BinaryCrossEntropy| <span style="color:green">Available</span>.|
+|BinaryCrossEntropy| Available|
 
 |Model Structure| Status|
 |---|---|
-|Sequential| <span style="color:green">Available</span>.|
+|Sequential| Available|
 
 |Optimizer| Status|
 |---|---|
-|GradientDescentOptimizer| <span style="color:green">Available</span>.|
+|GradientDescentOptimizer| Available|
 
 
