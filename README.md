@@ -73,14 +73,16 @@ The ```run.py``` consists of a small code snippet that can be used to test if yo
 
 All the implementations have a forward propagation and a backward propagation equivalent available as a method in the corresponding class. Below are the details for implementing all the functionalities under different categories.
 
-#### Activation Function
+They can be found at the docs.
+
+<!-- #### Activation Function
 
 Every new implementation of Activation function should be a class containing 3 methods,
 
 - ```__call__``` : returns ```eval```
 - ```eval``` : Method that returns the output of the activation function for an input X of shape (features, batch_size).
 - ```grad_input``` : Method that returns the Jacobian the activation function with respect to the input of the function. 
-If $ a(x) $ is the activation function, then ```grad_input``` returns 
+For an activation function $f$, the ```grad_input``` returns 
 $\begin{bmatrix}
     \frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} & \ldots & \frac{\partial f_1}{\partial x_n} \\
     \vdots & & \ddots & \vdots \\
@@ -89,7 +91,7 @@ $\begin{bmatrix}
 
 It should be noted that all the implementations must be using numpy and loops are required to be avoided at most of the places. 
 
-For an example, check ```activation.Sigmoid``` class in the repository.
+For an example, check ```activation.Sigmoid``` class in the repository. -->
 
 
 
