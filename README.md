@@ -72,21 +72,3 @@ The ```run.py``` consists of a small code snippet that can be used to test if yo
 ### Implementation Details
 
 All the implementations have a forward propagation and a backward propagation equivalent available as a method in the corresponding class. Below are the details for implementing all the functionalities under different categories.
-
-#### 1. Activation Function
-
-Every new implementation of Activation function should be a class containing 3 methods,
-
-- ```__call__``` : returns ```eval```
-- ```eval``` : Method that returns the output of the activation function for an input X of shape (features, batch_size).
-- ```grad_input``` : Method that returns the Jacobian of the activation function with respect to the input of the function. 
-I.e for an activation function, this method returns 
-
-<div align="center"><img src="http://www.sciweavers.org/tex2img.php?eq=%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%5Cfrac%7B%5Cpartial%20f_1%7D%7B%5Cpartial%20x_1%7D%20%26%20%5Cfrac%7B%5Cpartial%20f_1%7D%7B%5Cpartial%20x_2%7D%20%26%20%5Cldots%20%26%20%5Cfrac%7B%5Cpartial%20f_1%7D%7B%5Cpartial%20x_n%7D%20%5C%5C%0A%20%20%20%20%5Cvdots%20%26%20%26%20%5Cddots%20%26%20%5Cvdots%20%5C%5C%0A%20%20%20%20%5Cfrac%7B%5Cpartial%20f_n%7D%7B%5Cpartial%20x_1%7D%20%26%20%5Cfrac%7B%5Cpartial%20f_n%7D%7B%5Cpartial%20x_2%7D%20%26%20...%20%26%20%5Cfrac%7B%5Cpartial%20f_n%7D%7B%5Cpartial%20x_n%7D%20%5C%5C%0A%20%20%5Cend%7Bbmatrix%7D&bc=White&fc=Black&im=jpg&fs=36&ff=arev&edit=0" align="center" border="0" alt="\begin{bmatrix}    \frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} & \ldots & \frac{\partial f_1}{\partial x_n} \\    \vdots & & \ddots & \vdots \\    \frac{\partial f_n}{\partial x_1} & \frac{\partial f_n}{\partial x_2} & ... & \frac{\partial f_n}{\partial x_n} \\  \end{bmatrix}" width="250" height="125" /></div>
-
-
-It should be noted that all the implementations must be using numpy and loops are required to be avoided at most of the places. 
-For an example, check ```activation.Sigmoid``` class in the repository.
-
-<!-- #### 2. Layers -->
-
