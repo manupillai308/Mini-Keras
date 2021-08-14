@@ -72,3 +72,5 @@ The ```run.py``` consists of a small code snippet that can be used to test if yo
 ### Implementation Details
 
 All the implementations have a forward propagation and a backward propagation equivalent available as a method in the corresponding class. Below are the details for implementing all the functionalities under different categories.
+
+[README.ipynb](/README.ipynb) explains each of the implementations with mathematical proofs for better understanding.
