@@ -11,25 +11,25 @@ Given below is list of available implementations (which may or may not require a
 
 |Activation Function| Status|
 |---|---|
-|Sigmoid| Available|
+|Sigmoid| <span style="color:green">Available</span>.|
 
-|Layers| Status|
+|Layer| Status|
 |---|---|
-|Dense| Available|
-|Conv2D| Available|
-|MaxPool2D| Available|
-|Flatten| Available|
+|Dense| <span style="color:green">Available</span>.|
+|Conv2D| <span style="color:green">Available</span>.|
+|MaxPool2D| <span style="color:green">Available</span>.|
+|Flatten| <span style="color:green">Available</span>.|
 
 |Loss Function| Status|
 |---|---|
-|BinaryCrossEntropy| Available|
+|BinaryCrossEntropy| <span style="color:green">Available</span>.|
 
 |Model Structure| Status|
 |---|---|
-|Sequential| Available|
+|Sequential| <span style="color:green">Available</span>.|
 
 |Optimizer| Status|
 |---|---|
-|GradientDescentOptimizer| Available|
+|GradientDescentOptimizer| <span style="color:green">Available</span>.|
 
 
