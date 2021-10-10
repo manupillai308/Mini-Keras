@@ -421,3 +421,161 @@ class MaxPool2D:
     def update(self, grad_w, grad_b, optimizer, method="minimize"):
         pass
         
+class BasicRNN:
+    
+    def __init__(self, output_units, hidden_units, activation, input_size):
+        if isinstance(input_size, tuple):
+            if len(input_size) != 2: # input_size => (timestep, input_features)
+                raise RuntimeError(f"Incompatible input shape, got {input_size}")
+                
+        self.output_activation = activation
+        self.timestep = input_size[0]
+        self.input_units = input_size[1]
+        self.output_units = output_units
+        self.hidden_units = hidden_units
+        
+        self.hidden_layer = Dense(units=hidden_units, activation=ReLU(), input_size=self.input_units+self.hidden_units)
+        self.output_layer = Dense(units=output_units, activation=self.output_activation, input_size=self.hidden_units)
+
+    def get_output_size(self):
+        return (self.timestep, self.output_units)
+
+    def get_no_of_params(self):
+        return self.hidden_layer.get_no_of_params() + self.output_layer.get_no_of_params()
+
+    def eval(self, X, start_sequence=None):
+        h_t = np.zeros((self.hidden_units, X.shape[-1]))
+        timestep = X.shape[1]
+        if start_sequence is not None:
+            assert h_t.shape == start_sequence, f"Sequence start hidden state received incompatible shape, got {start_sequence.shape}, expected {h_t.shape}"
+            h_t = start_sequence
+        
+        y = np.empty((self.output_units, timestep, X.shape[-1]))
+        for i in range(timestep):
+            x_t = X[:, i, :]
+            x_t_stacked = np.vstack([x_t, h_t])
+            h_t = self.hidden_layer.eval(x_t_stacked)
+            y_t = self.output_layer.eval(h_t)
+            y[:, i, :] = y_t
+        
+        return y
+
+    def grad_parameters_T(self, x_t, h_t_1):
+        
+        x_t_stacked = np.vstack([x_t, h_t_1])
+        h_t = self.hidden_layer.eval(x_t_stacked)
+        
+        dyt_param_output = self.output_layer.grad_parameters(h_t) # (dw, db)
+        dyt_ht = self.output_layer.grad_input(h_t)
+        
+        dht_param = self.hidden_layer.grad_parameters(x_t_stacked)
+        
+        dyt_param_hidden = (np.einsum('mij,mjkl->mikl', dyt_ht, dht_param[0]), np.einsum('mij,mjk->mik', dyt_ht, dht_param[1]))
+        
+        return dyt_param_output, dyt_param_hidden, dht_param, h_t
+    
+    def grad_input_T(self, x_t, h_t_1):
+        x_t_stacked = np.vstack([x_t, h_t_1])
+        h_t = self.hidden_layer.eval(x_t_stacked)
+        
+        dyt_ht = self.output_layer.grad_input(h_t)
+        
+        dht_x_t_stacked = self.hidden_layer.grad_input(x_t_stacked)
+        
+        dht_x_t = dht_x_t_stacked[:, :, :self.input_units]
+        dht_h_t_1 = dht_x_t_stacked[:, :, self.input_units:]
+        
+
+        dyt_x_t_stacked = np.einsum('mij,mjk->mik', dyt_ht, dht_x_t_stacked)
+
+        dyt_x_t = dyt_x_t_stacked[:, :, :self.input_units]
+        dyt_h_t_1 = dyt_x_t_stacked[:, :, self.input_units:]
+        
+        assert dyt_x_t.shape[-1] == self.input_units, f"Shape mistmatch in input gradient for step t, {dyt_x_t.shape[-1]} != {self.input_units}"
+        assert dyt_h_t_1.shape[-1] == self.hidden_units, f"Shape mistmatch in input gradient for step t, {dyt_h_t_1.shape[-1]} != {self.hidden_units}"
+        
+        return dyt_x_t, dyt_h_t_1, dht_x_t, dht_h_t_1, h_t
+    
+    
+    def grad_input(self, X, start_sequence=None):
+        h_t = np.zeros((self.hidden_units, X.shape[-1]))
+        timestep = X.shape[1]
+        
+        if start_sequence is not None:
+            assert h_t.shape == start_sequence, f"Sequence start hidden state received incompatible shape, got {start_sequence.shape}, expected {h_t.shape}"
+            h_t = start_sequence
+        
+        dy_dx = np.zeros((X.shape[-1], timestep, timestep, self.output_units, self.input_units))
+        dy_dh_1 = np.zeros((X.shape[-1], timestep, timestep, self.output_units, self.hidden_units))
+        
+        gradient_across_time = {}
+        
+        for i in range(timestep):
+            x_t = X[:, i, :]
+            dyt_x_t, dyt_h_t_1, dht_x_t, dht_h_t_1, h_t = self.grad_input_T(x_t, h_t)
+            dy_dx[:, i, i] = dyt_x_t
+            dy_dh_1[:, i, i] = dyt_h_t_1
+            
+            gradient_across_time[i] = {}
+            gradient_across_time[i]["dht_x_t"] = dht_x_t
+            gradient_across_time[i]["dht_h_t_1"] = dht_h_t_1
+            
+            for j in range(i-1, -1):
+                dy_dx[:, i, j] = np.einsum('mij,mjk->mik', dyt_h_t_1, gradient_across_time[j]["dht_x_t"])
+                dyt_h_t_1 = np.einsum('mij,mjk->mik', dyt_h_t_1, gradient_across_time[j]["dht_h_t_1"])
+                dy_dh_1[:, i, j] = dyt_h_t_1
+            
+            
+        return dy_dx, dy_dh_1
+        
+        
+    def grad_parameters(self, X, dy_dh_1, start_sequence=None):
+        h_t = np.zeros((self.hidden_units, X.shape[-1]))
+        timestep = X.shape[1]
+        
+        if start_sequence is not None:
+            assert h_t.shape == start_sequence, f"Sequence start hidden state received incompatible shape, got {start_sequence.shape}, expected {h_t.shape}"
+            h_t = start_sequence
+        
+        dy_dx = np.zeros((X.shape[-1], timestep, timestep, self.output_units, self.input_units))
+        
+        dy_dw_output = np.zeros((X.shape[-1], timestep, timestep, self.hidden_units, self.output_units, self.hidden_units))
+        dy_dw_hidden = np.zeros((X.shape[-1], timestep, timestep, self.input_units, self.hidden_units, self.input_units))
+        dy_db_hidden = np.zeros((X.shape[-1], timestep, timestep, self.hidden_units, self.hidden_units))
+        dy_db_output = np.zeros((X.shape[-1], timestep, timestep, self.output_units, self.output_units))
+        
+        for i in range(timestep):
+            x_t = X[:, i, :]
+            (dyt_dw_output, dyt_db_output), (dyt_dw_hidden, dyt_db_hidden), (dht_dw_hidden, dht_db_hidden), h_t = self.grad_parameters_T(x_t, h_t)
+            dy_dw_output[:, i, i] = dyt_dw_output
+            dy_db_output[:, i, i] = dyt_db_output
+            
+            dy_db_hidden[:, i, i] = dyt_db_hidden
+            dy_dw_hidden[:, i, i] = dyt_dw_hidden
+            
+            for j in range(i+1, timestep):
+                dy_dw_hidden[:, j, i] = np.einsum('mij,mjkl->mikl', dy_dh_1[:, j, i], dht_dw_hidden)
+                dy_db_hidden[:, j, i] = np.einsum('mij,mjk->mik', dy_dh_1[:, j, i], dht_db_hidden)
+            
+        return (dy_dw_output, dy_db_output), (dy_dw_hidden, dy_db_hidden)
+    
+    
+    def gradient_dict(self, output):
+        grad_ = {}
+        grad_["input"], dy_dh_1 = self.grad_input(output)
+        grad_["output"], grad_["hidden"] = self.grad_parameters(output, dy_dh_1)
+
+        return grad_
+    
+    @staticmethod
+    def backprop_grad(grad_loss, grad):
+        raise NotImplementedError("backprop_grad not implemented")
+        
+        grad_w = np.einsum('mij,mjkl->mikl', grad_loss, grad["w"]).sum(axis=0)[0]
+        grad_b = np.einsum('mij,mjk->mik', grad_loss, grad["b"]).sum(axis=0).T
+        grad_loss = np.einsum('mij,mjk->mik', grad_loss, grad["input"])
+
+        return grad_w, grad_b, grad_loss
+
+    def update(self, grad_w, grad_b, optimizer, method="minimize"):
+        self.dot.update(grad_w, grad_b, optimizer, method)
